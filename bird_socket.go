@@ -2,9 +2,12 @@ package birdsocket
 
 import (
 	"bytes"
+	"errors"
 	"net"
+	"os"
 	"regexp"
 	"strings"
+	"time"
 )
 
 var birdReturnCodeRegex *regexp.Regexp
@@ -21,9 +24,10 @@ func init() {
 
 // BirdSocket encapsulates communication with Bird routing daemon
 type BirdSocket struct {
-	socketPath string
-	bufferSize int
-	conn       net.Conn
+	socketPath   string
+	bufferSize   int
+	conn         net.Conn
+	readDeadline *time.Duration
 }
 
 // BirdSocketOption applies options to BirdSocket
@@ -33,6 +37,12 @@ type Option func(*BirdSocket)
 func WithBufferSize(bufferSize int) Option {
 	return func(s *BirdSocket) {
 		s.bufferSize = bufferSize
+	}
+}
+
+func WithReadDeadline(readDeadline time.Duration) Option {
+	return func(s *BirdSocket) {
+		s.readDeadline = &readDeadline
 	}
 }
 
@@ -101,11 +111,19 @@ func (s *BirdSocket) Query(qry string) ([]byte, error) {
 func (s *BirdSocket) readFromSocket(conn net.Conn) ([]byte, error) {
 	b := make([]byte, 0)
 	buf := make([]byte, s.bufferSize)
+	if s.readDeadline != nil {
+		if err := s.conn.SetReadDeadline(time.Now().Add(*s.readDeadline)); err != nil {
+			return nil, err
+		}
+	}
 
 	done := false
 	for !done {
 		n, err := conn.Read(buf[:])
 		if err != nil {
+			if errors.Is(err, os.ErrDeadlineExceeded) {
+				break
+			}
 			return nil, err
 		}
 
