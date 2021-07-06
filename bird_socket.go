@@ -135,6 +135,11 @@ func (s *BirdSocket) readFromSocket(conn net.Conn, confirm bool) ([]byte, error)
                 for {
                         n, err := conn.Read(buf[:])
                         if err != nil {
+				if err == io.EOF {
+					fmt.Println("EOF Error(): ", err.Error())
+					break
+				}
+				fmt.Println("Error(): ", err.Error())
 				break
                         }
 
