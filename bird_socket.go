@@ -8,6 +8,8 @@ import (
 	"regexp"
 	"strings"
 	"time"
+	"io"
+	"fmt"
 )
 
 var birdReturnCodeRegex *regexp.Regexp
