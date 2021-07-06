@@ -94,13 +94,13 @@ func (s *BirdSocket) Close() {
 }
 
 // Query sends an query to Bird and waits for the reply
-func (s *BirdSocket) Query(qry string) ([]byte, error) {
+func (s *BirdSocket) Query(qry string, confirm bool) ([]byte, error) {
 	_, err := s.conn.Write([]byte(strings.Trim(qry, "\n") + "\n"))
 	if err != nil {
 		return nil, err
 	}
 
-	output, err := s.readFromSocket(s.conn)
+	output, err := s.readFromSocket(s.conn, confirm)
 	if err != nil {
 		return nil, err
 	}
@@ -108,7 +108,7 @@ func (s *BirdSocket) Query(qry string) ([]byte, error) {
 	return output, nil
 }
 
-func (s *BirdSocket) readFromSocket(conn net.Conn) ([]byte, error) {
+func (s *BirdSocket) readFromSocket(conn net.Conn, confirm bool) ([]byte, error) {
 	b := make([]byte, 0)
 	buf := make([]byte, s.bufferSize)
 	if s.readDeadline != nil {
@@ -117,20 +117,34 @@ func (s *BirdSocket) readFromSocket(conn net.Conn) ([]byte, error) {
 		}
 	}
 
-	done := false
-	for !done {
-		n, err := conn.Read(buf[:])
-		if err != nil {
-			if errors.Is(err, os.ErrDeadlineExceeded) {
-				break
+	if confirm {
+		done := false
+		for !done {
+			n, err := conn.Read(buf[:])
+			if err != nil {
+				if errors.Is(err, os.ErrDeadlineExceeded) {
+					break
+				}
+				return nil, err
 			}
-			return nil, err
+
+			b = append(b, buf[:n]...)
+			done = containsActionCompletedCode(b)
 		}
+	} else {
+                for {
+                        n, err := conn.Read(buf[:])
+                        if err != nil {
+                                if errors.Is(err, os.ErrDeadlineExceeded) {
+                                        break
+                                }
+                                return nil, err
+                        }
 
-		b = append(b, buf[:n]...)
-		done = containsActionCompletedCode(b)
+                        b = append(b, buf[:n]...)
+                        done = containsActionCompletedCode(b)
+                }	
 	}
-
 	return b, nil
 }
 
