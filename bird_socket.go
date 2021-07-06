@@ -142,7 +142,6 @@ func (s *BirdSocket) readFromSocket(conn net.Conn, confirm bool) ([]byte, error)
                         }
 
                         b = append(b, buf[:n]...)
-                        done = containsActionCompletedCode(b)
                 }	
 	}
 	return b, nil
