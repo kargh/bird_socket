@@ -58,7 +58,7 @@ func NewSocket(socketPath string, opts ...Option) *BirdSocket {
 }
 
 // Query sends an ad hoc query to Bird and waits for the reply
-func Query(socketPath, qry string) ([]byte, error) {
+func Query(socketPath, qry string, confirm bool) ([]byte, error) {
 	s := NewSocket(socketPath)
 	_, err := s.Connect()
 	if err != nil {
@@ -66,7 +66,7 @@ func Query(socketPath, qry string) ([]byte, error) {
 	}
 	defer s.Close()
 
-	return s.Query(qry)
+	return s.Query(qry, confirm)
 }
 
 // Connect connects to the Bird unix socket
