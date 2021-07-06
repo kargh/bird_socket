@@ -1,4 +1,4 @@
-module github.com/michalzurawski/bird_socket
+module github.com/kargh/bird_socket
 
 go 1.16
 
