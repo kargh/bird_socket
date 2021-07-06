@@ -135,10 +135,7 @@ func (s *BirdSocket) readFromSocket(conn net.Conn, confirm bool) ([]byte, error)
                 for {
                         n, err := conn.Read(buf[:])
                         if err != nil {
-                                if errors.Is(err, os.ErrDeadlineExceeded) {
-                                        break
-                                }
-                                return nil, err
+				break
                         }
 
                         b = append(b, buf[:n]...)
