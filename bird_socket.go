@@ -109,6 +109,8 @@ func (s *BirdSocket) Query(qry string, confirm bool) ([]byte, error) {
 }
 
 func (s *BirdSocket) readFromSocket(conn net.Conn, confirm bool) ([]byte, error) {
+        return []byte("Only a test"), nil
+
 	b := make([]byte, 0)
 	buf := make([]byte, s.bufferSize)
 	if s.readDeadline != nil {
